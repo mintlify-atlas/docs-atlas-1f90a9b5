@@ -1,0 +1,202 @@
+---
+title: "Workspaces"
+description: "Learn about multi-module workspaces in Go 1.18+ for working with multiple modules simultaneously"
+---
+
+In this guide, we'll learn about multi-module workspaces that were introduced in Go 1.18.
+
+## What are Workspaces?
+
+Workspaces allow us to work with multiple modules simultaneously without having to edit `go.mod` files for each module. Each module within a workspace is treated as a root module when resolving dependencies.
+
+<Info>
+This is a very useful feature from Go 1.18 that simplifies development when working with multiple related modules.
+</Info>
+
+## Creating a Workspace
+
+Let's understand workspaces better by creating a practical example.
+
+<Steps>
+  <Step title="Create a hello module">
+    First, let's create a new module:
+
+    ```bash
+    $ mkdir workspaces && cd workspaces
+    $ mkdir hello && cd hello
+    $ go mod init hello
+    ```
+  </Step>
+
+  <Step title="Add code with an external dependency">
+    Create a `main.go` file and install an example package:
+
+    ```go
+    package main
+
+    import (
+      "fmt"
+
+      "golang.org/x/example/stringutil"
+    )
+
+    func main() {
+      result := stringutil.Reverse("Hello Workspace")
+      fmt.Println(result)
+    }
+    ```
+
+    Install the dependency:
+
+    ```bash
+    $ go get golang.org/x/example
+    go: downloading golang.org/x/example v0.0.0-20220412213650-2e68773dfca0
+    go: added golang.org/x/example v0.0.0-20220412213650-2e68773dfca0
+    ```
+  </Step>
+
+  <Step title="Test the module">
+    Run the code to verify it works:
+
+    ```bash
+    $ go run main.go
+    ecapskroW olleH
+    ```
+  </Step>
+</Steps>
+
+## The Problem Workspaces Solve
+
+What if we want to modify the `stringutil` module that our code depends on?
+
+Until Go 1.18, we had to use the `replace` directive in the `go.mod` file. Now, let's see how workspaces provide a better solution.
+
+## Using go.work
+
+<Steps>
+  <Step title="Initialize a workspace">
+    In the `workspaces` directory, create a new workspace:
+
+    ```bash
+    $ go work init
+    ```
+
+    This creates a `go.work` file:
+
+    ```bash
+    $ cat go.work
+    go 1.18
+    ```
+  </Step>
+
+  <Step title="Add the hello module to the workspace">
+    ```bash
+    $ go work use ./hello
+    ```
+
+    This updates the `go.work` file:
+
+    ```go
+    go 1.18
+
+    use ./hello
+    ```
+  </Step>
+
+  <Step title="Clone and modify the dependency">
+    Download and modify the `stringutil` package:
+
+    ```bash
+    $ git clone https://go.googlesource.com/example
+    Cloning into 'example'...
+    remote: Total 204 (delta 39), reused 204 (delta 39)
+    Receiving objects: 100% (204/204), 467.53 KiB | 363.00 KiB/s, done.
+    Resolving deltas: 100% (39/39), done.
+    ```
+
+    Modify `example/stringutil/reverse.go`:
+
+    ```go
+    func Reverse(s string) string {
+      return fmt.Sprintf("I can do whatever!! %s", s)
+    }
+    ```
+  </Step>
+
+  <Step title="Add the modified package to the workspace">
+    ```bash
+    $ go work use ./example
+    $ cat go.work
+    go 1.18
+
+    use (
+      ./example
+      ./hello
+    )
+    ```
+  </Step>
+
+  <Step title="Test the workspace">
+    Run the `hello` module and see the modified function in action:
+
+    ```bash
+    $ go run hello
+    I can do whatever!! Hello Workspace
+    ```
+  </Step>
+</Steps>
+
+## Workspace Commands
+
+### go work init
+
+Initializes a new workspace in the current directory:
+
+```bash
+$ go work init
+```
+
+### go work use
+
+Adds a module to the workspace:
+
+```bash
+$ go work use ./path/to/module
+```
+
+You can add multiple modules at once:
+
+```bash
+$ go work use ./module1 ./module2 ./module3
+```
+
+### go work sync
+
+Synchronizes the workspace's build list back to the modules:
+
+```bash
+$ go work sync
+```
+
+## Use Cases
+
+Workspaces are particularly useful when:
+
+- Developing multiple related modules simultaneously
+- Testing changes across module boundaries
+- Working on a dependency and the code that uses it
+- Prototyping changes to external dependencies
+- Avoiding the need for `replace` directives in go.mod
+
+<Note>
+The `go.work` file should typically not be committed to version control, as it's specific to your local development environment.
+</Note>
+
+## Key Takeaways
+
+- Workspaces were introduced in Go 1.18
+- They allow working with multiple modules without editing go.mod files
+- The `go.work` file defines which modules are part of the workspace
+- Each module in a workspace is treated as a root module
+- Workspaces are ideal for local development with multiple modules
+- Use `go work init`, `go work use`, and `go work sync` to manage workspaces

@@ -1,0 +1,335 @@
+---
+title: "Context Package"
+description: "Learn how to use Go's context package for managing cancellation, timeouts, and request-scoped values in concurrent programs"
+---
+
+In concurrent programs, it's often necessary to preempt operations because of timeouts, cancellations, or failure of another portion of the system.
+
+The `context` package makes it easy to pass request-scoped values, cancellation signals, and deadlines across API boundaries to all the goroutines involved in handling a request.
+
+## Core Types
+
+Let's discuss some core types of the `context` package.
+
+### Context Interface
+
+The `Context` is an interface type that is defined as follows:
+
+```go
+type Context interface {
+	Deadline() (deadline time.Time, ok bool)
+	Done() <-chan struct{}
+	Err() error
+	Value(key any) any
+}
+```
+
+The `Context` type has the following methods:
+
+- `Done() <-chan struct{}` - Returns a channel that is closed when the context is canceled or times out. Done may return `nil` if the context can never be canceled.
+- `Deadline() (deadline time.Time, ok bool)` - Returns the time when the context will be canceled or timed out. Deadline returns `ok` as `false` when no deadline is set.
+- `Err() error` - Returns an error that explains why the Done channel was closed. If Done is not closed yet, it returns `nil`.
+- `Value(key any) any` - Returns the value associated with the key or `nil` if none.
+
+### CancelFunc
+
+A `CancelFunc` tells an operation to abandon its work and it does not wait for the work to stop. If it is called by multiple goroutines simultaneously, after the first call, subsequent calls to a `CancelFunc` do nothing.
+
+```go
+type CancelFunc func()
+```
+
+## Context Functions
+
+Let's discuss functions that are exposed by the `context` package:
+
+### Background
+
+`Background` returns a non-nil, empty `Context`. It is never canceled, has no values, and has no deadline.
+
+```go
+func Background() Context
+```
+
+<Note>
+It is typically used by the main function, initialization, and tests, and as the top-level Context for incoming requests.
+</Note>
+
+### TODO
+
+Similar to the `Background` function, `TODO` also returns a non-nil, empty `Context`.
+
+However, it should only be used when we are not sure what context to use or if the function has not been updated to receive a context. This means we plan to add context to the function in the future.
+
+```go
+func TODO() Context
+```
+
+### WithValue
+
+This function takes in a context and returns a derived context where the value `val` is associated with `key` and flows through the context tree with the context.
+
+This means that once you get a context with value, any context that derives from this gets this value.
+
+```go
+func WithValue(parent Context, key, val any) Context
+```
+
+<Warning>
+It is not recommended to pass in critical parameters using context values. Instead, functions should accept those values in the signature making it explicit.
+</Warning>
+
+#### Example
+
+Let's take a simple example to see how we can add a key-value pair to the context:
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+)
+
+func main() {
+	processID := "abc-xyz"
+
+	ctx := context.Background()
+	ctx = context.WithValue(ctx, "processID", processID)
+
+	ProcessRequest(ctx)
+}
+
+func ProcessRequest(ctx context.Context) {
+	value := ctx.Value("processID")
+	fmt.Printf("Processing ID: %v", value)
+}
+```
+
+And if we run this, we'll see the `processID` being passed via our context:
+
+```bash
+$ go run main.go
+Processing ID: abc-xyz
+```
+
+### WithCancel
+
+This function creates a new context from the parent context and returns the derived context and a cancel function. The parent can be a `context.Background` or a context that was passed into the function.
+
+Canceling this context releases resources associated with it, so the code should call cancel as soon as the operations running in this context are completed.
+
+```go
+func WithCancel(parent Context) (ctx Context, cancel CancelFunc)
+```
+
+<Warning>
+Passing around the `cancel` function is not recommended as it may lead to unexpected behavior.
+</Warning>
+
+### WithDeadline
+
+This function returns a derived context from its parent that gets canceled when the deadline exceeds or the cancel function is called.
+
+For example, we can create a context that will automatically get canceled at a certain time in the future and pass that around in child functions. When that context gets canceled because of the deadline running out, all the functions that got the context get notified to stop work and return.
+
+```go
+func WithDeadline(parent Context, d time.Time) (Context, CancelFunc)
+```
+
+### WithTimeout
+
+This function is just a wrapper around the `WithDeadline` function with the added timeout.
+
+```go
+func WithTimeout(parent Context, timeout time.Duration) (Context, CancelFunc) {
+	return WithDeadline(parent, time.Now().Add(timeout))
+}
+```
+
+## Practical Example
+
+Let's look at a practical example to solidify our understanding of context.
+
+In the example below, we have a simple HTTP server that handles a request:
+
+```go
+package main
+
+import (
+	"fmt"
+	"net/http"
+	"time"
+)
+
+func handleRequest(w http.ResponseWriter, req *http.Request) {
+	fmt.Println("Handler started")
+	context := req.Context()
+
+	select {
+	// Simulating some work by the server, waits 5 seconds and then responds.
+	case <-time.After(5 * time.Second):
+		fmt.Fprintf(w, "Response from the server")
+
+	// Handling request cancellation
+	case <-context.Done():
+		err := context.Err()
+		fmt.Println("Error:", err)
+	}
+
+	fmt.Println("Handler complete")
+}
+
+func main() {
+	http.HandleFunc("/request", handleRequest)
+
+	fmt.Println("Server is running...")
+	http.ListenAndServe(":4000", nil)
+}
+```
+
+Let's open two terminals. In terminal one we'll run our example:
+
+```bash
+$ go run main.go
+Server is running...
+Handler started
+Handler complete
+```
+
+In the second terminal, we will simply make a request to our server. If we wait for 5 seconds, we get a response back:
+
+```bash
+$ curl localhost:4000/request
+Response from the server
+```
+
+Now, let's see what happens if we cancel the request before it completes.
+
+<Note>
+We can use `ctrl + c` to cancel the request midway.
+</Note>
+
+```bash
+$ curl localhost:4000/request
+^C
+```
+
+And as we can see, we're able to detect the cancellation of the request because of the request context:
+
+```bash
+$ go run main.go
+Server is running...
+Handler started
+Error: context canceled
+Handler complete
+```
+
+I'm sure you can already see how this can be immensely useful.
+
+For example, we can use this to cancel any resource-intensive work if it's no longer needed or has exceeded the deadline or a timeout.
+
+## Context Best Practices
+
+Here are some best practices when working with context:
+
+### 1. Pass Context as First Parameter
+
+Context should always be passed as the first parameter to a function, typically named `ctx`:
+
+```go
+func DoSomething(ctx context.Context, arg string) error {
+    // ...
+}
+```
+
+### 2. Don't Store Context in Structs
+
+Context should be passed explicitly through your call stack. Don't store it in a struct:
+
+```go
+// Bad
+type Worker struct {
+    ctx context.Context
+}
+
+// Good
+type Worker struct {
+    // other fields
+}
+
+func (w *Worker) DoWork(ctx context.Context) error {
+    // ...
+}
+```
+
+### 3. Use context.Background for Top-Level Contexts
+
+For main functions, initialization, and tests, use `context.Background()`:
+
+```go
+func main() {
+    ctx := context.Background()
+    // pass ctx to other functions
+}
+```
+
+### 4. Use context.TODO When Unsure
+
+If you're unsure which context to use or plan to add proper context support later:
+
+```go
+func legacyFunction() {
+    ctx := context.TODO()
+    // TODO: update to accept context as parameter
+    newFunction(ctx)
+}
+```
+
+### 5. Always Call Cancel Functions
+
+When you create a context with a cancel function, always defer its call:
+
+```go
+ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+defer cancel() // Always call cancel to release resources
+
+result, err := doWork(ctx)
+```
+
+### 6. Handle Context Cancellation
+
+Always check for context cancellation in long-running operations:
+
+```go
+func longRunningOperation(ctx context.Context) error {
+    for i := 0; i < 1000; i++ {
+        select {
+        case <-ctx.Done():
+            return ctx.Err()
+        default:
+            // do work
+        }
+    }
+    return nil
+}
+```
+
+### 7. Use Context Values Sparingly
+
+Only use context values for request-scoped data that crosses API boundaries:
+
+```go
+// Good use cases:
+// - Request IDs
+// - Authentication tokens
+// - Trace IDs
+
+// Bad use cases:
+// - Optional parameters
+// - Required function parameters
+```
+
+<Tip>
+Context is a powerful tool for managing the lifecycle of operations in concurrent programs. Use it to propagate cancellation signals, deadlines, and request-scoped values across your application.
+</Tip>

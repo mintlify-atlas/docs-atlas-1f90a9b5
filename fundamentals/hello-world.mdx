@@ -1,0 +1,77 @@
+---
+title: Hello World
+description: Learn how to write your first Go program and understand the structure of Go applications
+---
+
+Let's write our first hello world program. We can start by initializing a module. For that, we can use the `go mod` command.
+
+```bash
+$ go mod init example
+```
+
+<Note>
+Don't worry about what a **module** is right now! We will discuss that soon. For now, assume that the module is basically a collection of Go packages.
+</Note>
+
+Moving ahead, let's now create a `main.go` file and write a program that simply prints hello world.
+
+```go
+package main
+
+import "fmt"
+
+func main() {
+	fmt.Println("Hello World!")
+}
+```
+
+<Note>
+If you're wondering, `fmt` is part of the Go standard library which is a set of core packages provided by the language.
+</Note>
+
+## Structure of a Go Program
+
+Now, let's quickly break down what we did here, or rather the structure of a Go program.
+
+<Steps>
+  <Step title="Package Declaration">
+    First, we defined a package such as `main`.
+
+    ```go
+    package main
+    ```
+  </Step>
+
+  <Step title="Imports">
+    Then, we have some imports.
+
+    ```go
+    import "fmt"
+    ```
+  </Step>
+
+  <Step title="Main Function">
+    Last but not least, is our `main` function which acts as an entry point for our application, just like in other languages like C, Java, or C#.
+
+    ```go
+    func main() {
+      ...
+    }
+    ```
+  </Step>
+</Steps>
+
+<Note>
+Remember, the goal here is to keep a mental note, and later in the course, we'll learn about `functions`, `imports`, and other things in detail!
+</Note>
+
+## Running Go Code
+
+Finally, to run our code, we can simply use `go run` command.
+
+```bash
+$ go run main.go
+Hello World!
+```
+
+Congratulations, you just wrote your first Go program!

@@ -1,0 +1,153 @@
+---
+title: "Modules"
+description: "Learn about Go modules, dependency management, and vendoring"
+---
+
+In this guide, we'll learn about Go modules and how to manage dependencies in your Go projects.
+
+## What are modules?
+
+A module is a collection of [Go packages](https://go.dev/ref/spec#Packages) stored in a file tree with a `go.mod` file at its root, provided the directory is _outside_ `$GOPATH/src`.
+
+Go modules were introduced in Go 1.11, which brings native support for versions and modules. Earlier, we needed the `GO111MODULE=on` flag to turn on the modules functionality when it was experimental. But now after Go 1.13 modules mode is the default for all development.
+
+### What is GOPATH?
+
+`GOPATH` is a variable that defines the root of your workspace and it contains the following folders:
+
+- **src**: contains Go source code organized in a hierarchy.
+- **pkg**: contains compiled package code.
+- **bin**: contains compiled binaries and executables.
+
+![gopath](https://raw.githubusercontent.com/karanpratapsingh/portfolio/master/public/static/courses/go/chapter-I/modules/gopath.png)
+
+<Note>
+Modules provide a better way to manage dependencies compared to the old GOPATH-based approach.
+</Note>
+
+## Creating a Module
+
+<Steps>
+  <Step title="Initialize a new module">
+    Use `go mod init` command to create a new module and initialize the `go.mod` file:
+
+    ```bash
+    $ go mod init example
+    ```
+
+    <Info>
+    A Go module can correspond to a Github repository as well if you plan to publish this module:
+    
+    ```bash
+    $ go mod init github.com/username/example
+    ```
+    </Info>
+  </Step>
+
+  <Step title="Understand go.mod structure">
+    The `go.mod` file defines the module's _module path_ (import path for the root directory) and its _dependency requirements_:
+
+    ```go
+    module <name>
+
+    go <version>
+
+    require (
+      ...
+    )
+    ```
+  </Step>
+</Steps>
+
+## Managing Dependencies
+
+### Installing Dependencies
+
+To add a new dependency, use the `go install` command:
+
+```bash
+$ go install github.com/rs/zerolog
+```
+
+When you install a dependency, a `go.sum` file is also created. This file contains the expected [hashes](https://go.dev/cmd/go/#hdr-Module_downloading_and_verification) of the content of the modules.
+
+### Listing Dependencies
+
+You can list all the dependencies using `go list` command:
+
+```bash
+$ go list -m all
+```
+
+### Cleaning Up Dependencies
+
+If a dependency is not used, you can remove it using `go mod tidy` command:
+
+```bash
+$ go mod tidy
+```
+
+<Note>
+The `go mod tidy` command adds missing dependencies and removes unused ones automatically.
+</Note>
+
+## Vendoring
+
+Vendoring is the act of making your own copy of the 3rd party packages your project is using. Those copies are traditionally placed inside each project and then saved in the project repository.
+
+This can be done through `go mod vendor` command.
+
+Let's see an example:
+
+<Steps>
+  <Step title="Add a dependency to your code">
+    ```go
+    package main
+
+    import "github.com/rs/zerolog/log"
+
+    func main() {
+      log.Info().Msg("Hello")
+    }
+    ```
+  </Step>
+
+  <Step title="Download the dependency">
+    ```bash
+    $ go mod tidy
+    go: finding module for package github.com/rs/zerolog/log
+    go: found github.com/rs/zerolog/log in github.com/rs/zerolog v1.26.1
+    ```
+  </Step>
+
+  <Step title="Create vendor directory">
+    ```bash
+    $ go mod vendor
+    ```
+
+    After the `go mod vendor` command is executed, a `vendor` directory will be created:
+
+    ```
+    ├── go.mod
+    ├── go.sum
+    ├── go.work
+    ├── main.go
+    └── vendor
+        ├── github.com
+        │   └── rs
+        │       └── zerolog
+        │           └── ...
+        └── modules.txt
+    ```
+  </Step>
+</Steps>
+
+## Common Module Commands
+
+| Command | Description |
+|---------|-------------|
+| `go mod init` | Initialize a new module |
+| `go install` | Install a package and add it to go.mod |
+| `go list -m all` | List all module dependencies |
+| `go mod tidy` | Add missing and remove unused modules |
+| `go mod vendor` | Create a vendor directory with dependencies |

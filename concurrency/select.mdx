@@ -1,0 +1,225 @@
+---
+title: 'Select Statement'
+description: 'Learn how to use the select statement to work with multiple channels simultaneously'
+---
+
+The `select` statement blocks the code and waits for multiple channel operations simultaneously.
+
+A `select` blocks until one of its cases can run, then it executes that case. It chooses one at random if multiple are ready.
+
+## Basic Select Example
+
+Let's look at a simple example:
+
+```go
+package main
+
+import (
+	"fmt"
+	"time"
+)
+
+func main() {
+	one := make(chan string)
+	two := make(chan string)
+
+	go func() {
+		time.Sleep(time.Second * 2)
+		one <- "One"
+	}()
+
+	go func() {
+		time.Sleep(time.Second * 1)
+		two <- "Two"
+	}()
+
+	select {
+	case result := <-one:
+		fmt.Println("Received:", result)
+	case result := <-two:
+		fmt.Println("Received:", result)
+	}
+
+	close(one)
+	close(two)
+}
+```
+
+In this example, the `select` statement waits for either channel `one` or `two` to receive a value. Since channel `two` receives a value first (after 1 second), that case will execute.
+
+```bash
+$ go run main.go
+Received: Two
+```
+
+<Note>
+The `select` statement is similar to `switch`, but it works with channels instead of values.
+</Note>
+
+## Default Case for Non-blocking Operations
+
+Similar to `switch`, `select` also has a **default case** that runs if no other case is ready. This helps us send or receive without blocking:
+
+```go
+func main() {
+	one := make(chan string)
+	two := make(chan string)
+
+	for x := 0; x < 10; x++ {
+		go func() {
+			time.Sleep(time.Second * 2)
+			one <- "One"
+		}()
+
+		go func() {
+			time.Sleep(time.Second * 1)
+			two <- "Two"
+		}()
+	}
+
+	for x := 0; x < 10; x++ {
+		select {
+		case result := <-one:
+			fmt.Println("Received:", result)
+		case result := <-two:
+			fmt.Println("Received:", result)
+		default:
+			fmt.Println("Default...")
+			time.Sleep(200 * time.Millisecond)
+		}
+	}
+
+	close(one)
+	close(two)
+}
+```
+
+In this example, the `default` case executes when neither channel is ready, preventing the program from blocking.
+
+```bash
+$ go run main.go
+Default...
+Default...
+Default...
+Default...
+Default...
+Received: Two
+Received: One
+Received: Two
+Received: Two
+Received: One
+```
+
+<Tip>
+The default case makes `select` non-blocking. Without it, `select` will wait until at least one channel is ready.
+</Tip>
+
+## Timeout Patterns
+
+One common use case for `select` is implementing timeouts. We can use `time.After` which returns a channel that sends a value after a specified duration:
+
+```go
+package main
+
+import (
+	"fmt"
+	"time"
+)
+
+func main() {
+	ch := make(chan string)
+
+	go func() {
+		time.Sleep(3 * time.Second)
+		ch <- "result"
+	}()
+
+	select {
+	case result := <-ch:
+		fmt.Println("Received:", result)
+	case <-time.After(2 * time.Second):
+		fmt.Println("Timeout: operation took too long")
+	}
+
+	close(ch)
+}
+```
+
+```bash
+$ go run main.go
+Timeout: operation took too long
+```
+
+This pattern is extremely useful for implementing timeouts in network operations, database queries, or any long-running operations.
+
+## Empty Select
+
+It's important to know that an empty `select {}` blocks forever:
+
+```go
+func main() {
+	ch := make(chan string)
+
+	go func() {
+		time.Sleep(1 * time.Second)
+		ch <- "Hello"
+	}()
+
+	select {} // This blocks forever
+
+	close(ch) // This line never executes
+}
+```
+
+<Warning>
+An empty `select` statement will block the goroutine forever. This is sometimes used intentionally to keep a program running, but be careful not to use it accidentally.
+</Warning>
+
+## Select with Multiple Channels
+
+You can have multiple cases in a `select` statement, making it powerful for coordinating between many goroutines:
+
+```go
+package main
+
+import (
+	"fmt"
+	"time"
+)
+
+func main() {
+	ch1 := make(chan string)
+	ch2 := make(chan string)
+	ch3 := make(chan string)
+
+	go func() {
+		time.Sleep(1 * time.Second)
+		ch1 <- "Channel 1"
+	}()
+
+	go func() {
+		time.Sleep(2 * time.Second)
+		ch2 <- "Channel 2"
+	}()
+
+	go func() {
+		time.Sleep(3 * time.Second)
+		ch3 <- "Channel 3"
+	}()
+
+	for i := 0; i < 3; i++ {
+		select {
+		case msg1 := <-ch1:
+			fmt.Println("Received:", msg1)
+		case msg2 := <-ch2:
+			fmt.Println("Received:", msg2)
+		case msg3 := <-ch3:
+			fmt.Println("Received:", msg3)
+		}
+	}
+}
+```
+
+<Note>
+The `select` statement is one of the most powerful features in Go for building concurrent applications. It allows you to elegantly handle multiple channel operations in a clean and readable way.
+</Note>

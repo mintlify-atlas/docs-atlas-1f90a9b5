@@ -1,0 +1,354 @@
+---
+title: "Sync Package"
+description: "Learn about Go's sync package primitives for synchronizing goroutines including WaitGroup, Mutex, and more"
+---
+
+As we learned earlier, goroutines run in the same address space, so access to shared memory must be synchronized. The [`sync`](https://go.dev/pkg/sync) package provides useful primitives.
+
+## WaitGroup
+
+A `WaitGroup` waits for a collection of goroutines to finish. The main goroutine calls `Add` to set the number of goroutines to wait for. Then each of the goroutines runs and calls `Done` when finished. At the same time, `Wait` can be used to block until all goroutines have finished.
+
+### Usage
+
+We can use the `sync.WaitGroup` using the following methods:
+
+- `Add(delta int)` - Takes in an integer value which is essentially the number of goroutines that the `WaitGroup` has to wait for. This must be called before we execute a goroutine.
+- `Done()` - Called within the goroutine to signal that the goroutine has successfully executed.
+- `Wait()` - Blocks the program until all the goroutines specified by `Add()` have invoked `Done()` from within.
+
+### Example
+
+Let's take a look at an example:
+
+```go
+package main
+
+import (
+	"fmt"
+	"sync"
+)
+
+func work() {
+	fmt.Println("working...")
+}
+
+func main() {
+	var wg sync.WaitGroup
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		work()
+	}()
+
+	wg.Wait()
+}
+```
+
+If we run this, we can see our program runs as expected:
+
+```bash
+$ go run main.go
+working...
+```
+
+We can also pass the `WaitGroup` to the function directly:
+
+```go
+func work(wg *sync.WaitGroup) {
+	defer wg.Done()
+	fmt.Println("working...")
+}
+
+func main() {
+	var wg sync.WaitGroup
+
+	wg.Add(1)
+	go work(&wg)
+
+	wg.Wait()
+}
+```
+
+<Warning>
+It's important to know that a `WaitGroup` **must not be copied** after first use. If it's explicitly passed into functions, it should be done by a pointer. This is because copying it can affect our counter which will disrupt the logic of our program.
+</Warning>
+
+Let's also increase the number of goroutines by calling the `Add` method to wait for 4 goroutines:
+
+```go
+func main() {
+	var wg sync.WaitGroup
+
+	wg.Add(4)
+
+	go work(&wg)
+	go work(&wg)
+	go work(&wg)
+	go work(&wg)
+
+	wg.Wait()
+}
+```
+
+And as expected, all our goroutines were executed:
+
+```bash
+$ go run main.go
+working...
+working...
+working...
+working...
+```
+
+## Mutex
+
+A `Mutex` is a **mutual exclusion lock** that prevents other processes from entering a critical section of data while a process occupies it to prevent race conditions from happening.
+
+### What's a Critical Section?
+
+A critical section can be a piece of code that must not be run by multiple threads at once because the code contains shared resources.
+
+### Usage
+
+We can use `sync.Mutex` using the following methods:
+
+- `Lock()` - Acquires or holds the lock
+- `Unlock()` - Releases the lock
+- `TryLock()` - Tries to lock and reports whether it succeeded
+
+### Example
+
+Let's take a look at an example. We will create a `Counter` struct and add an `Update` method which will update the internal value:
+
+```go
+package main
+
+import (
+	"fmt"
+	"sync"
+)
+
+type Counter struct {
+	value int
+}
+
+func (c *Counter) Update(n int, wg *sync.WaitGroup) {
+	defer wg.Done()
+	fmt.Printf("Adding %d to %d\n", n, c.value)
+	c.value += n
+}
+
+func main() {
+	var wg sync.WaitGroup
+
+	c := Counter{}
+
+	wg.Add(4)
+
+	go c.Update(10, &wg)
+	go c.Update(-5, &wg)
+	go c.Update(25, &wg)
+	go c.Update(19, &wg)
+
+	wg.Wait()
+	fmt.Printf("Result is %d", c.value)
+}
+```
+
+Let's run this and see what happens:
+
+```bash
+$ go run main.go
+Adding -5 to 0
+Adding 10 to 0
+Adding 19 to 0
+Adding 25 to 0
+Result is 49
+```
+
+That doesn't look accurate - the value is always zero but we somehow got the correct answer. This is because multiple goroutines are updating the `value` variable simultaneously, which is not ideal.
+
+This is the perfect use case for `Mutex`. Let's use `sync.Mutex` and wrap our critical section between `Lock()` and `Unlock()` methods:
+
+```go
+type Counter struct {
+	m     sync.Mutex
+	value int
+}
+
+func (c *Counter) Update(n int, wg *sync.WaitGroup) {
+	c.m.Lock()
+	defer wg.Done()
+	fmt.Printf("Adding %d to %d\n", n, c.value)
+	c.value += n
+	c.m.Unlock()
+}
+```
+
+```bash
+$ go run main.go
+Adding -5 to 0
+Adding 19 to -5
+Adding 25 to 14
+Adding 10 to 39
+Result is 49
+```
+
+Looks like we solved our issue and the output looks correct as well!
+
+<Note>
+Similar to `WaitGroup`, a `Mutex` **must not be copied** after first use.
+</Note>
+
+## RWMutex
+
+An `RWMutex` is a **reader/writer mutual exclusion lock**. The lock can be held by an arbitrary number of readers or a single writer.
+
+In other words, readers don't have to wait for each other. They only have to wait for writers holding the lock.
+
+`sync.RWMutex` is thus preferable for data that is mostly read, and the resource that is saved compared to a `sync.Mutex` is time.
+
+### Usage
+
+Similar to `sync.Mutex`, we can use `sync.RWMutex` using the following methods:
+
+- `Lock()` - Acquires or holds the write lock
+- `Unlock()` - Releases the write lock
+- `RLock()` - Acquires or holds the read lock
+- `RUnlock()` - Releases the read lock
+
+<Tip>
+Notice how `RWMutex` has additional `RLock` and `RUnlock` methods compared to `Mutex`.
+</Tip>
+
+### Example
+
+Let's add a `GetValue` method which will read the counter value. We will also change `sync.Mutex` to `sync.RWMutex`:
+
+```go
+package main
+
+import (
+	"fmt"
+	"sync"
+	"time"
+)
+
+type Counter struct {
+	m     sync.RWMutex
+	value int
+}
+
+func (c *Counter) Update(n int, wg *sync.WaitGroup) {
+	defer wg.Done()
+
+	c.m.Lock()
+	fmt.Printf("Adding %d to %d\n", n, c.value)
+	c.value += n
+	c.m.Unlock()
+}
+
+func (c *Counter) GetValue(wg *sync.WaitGroup) {
+	defer wg.Done()
+
+	c.m.RLock()
+	defer c.m.RUnlock()
+	fmt.Println("Get value:", c.value)
+	time.Sleep(400 * time.Millisecond)
+}
+
+func main() {
+	var wg sync.WaitGroup
+
+	c := Counter{}
+
+	wg.Add(4)
+
+	go c.Update(10, &wg)
+	go c.GetValue(&wg)
+	go c.GetValue(&wg)
+	go c.GetValue(&wg)
+
+	wg.Wait()
+}
+```
+
+Now, we can simply use the `RLock` and `RUnlock` methods so that readers don't have to wait for each other:
+
+```bash
+$ go run main.go
+Get value: 0
+Adding 10 to 0
+Get value: 10
+Get value: 10
+```
+
+<Note>
+Both `sync.Mutex` and `sync.RWMutex` implement the `sync.Locker` interface:
+
+```go
+type Locker interface {
+    Lock()
+    Unlock()
+}
+```
+</Note>
+
+## Once
+
+`Once` ensures that only one execution will be carried out even among several goroutines.
+
+### Usage
+
+Unlike other primitives, `sync.Once` only has a single method:
+
+- `Do(f func())` - Calls the function `f` **only once**. If `Do` is called multiple times, only the first call will invoke the function `f`.
+
+### Example
+
+This seems pretty straightforward. Let's take an example:
+
+```go
+package main
+
+import (
+	"fmt"
+	"sync"
+)
+
+func main() {
+	var count int
+
+	increment := func() {
+		count++
+	}
+
+	var once sync.Once
+
+	var increments sync.WaitGroup
+	increments.Add(100)
+
+	for i := 0; i < 100; i++ {
+		go func() {
+			defer increments.Done()
+			once.Do(increment)
+		}()
+	}
+
+	increments.Wait()
+	fmt.Printf("Count is %d\n", count)
+}
+```
+
+```bash
+$ go run main.go
+Count is 1
+```
+
+As we can see, even when we ran 100 goroutines, the count only got incremented once.
+
+<Tip>
+`sync.Once` is particularly useful for one-time initialization tasks, such as setting up a singleton, initializing a configuration, or establishing a database connection.
+</Tip>

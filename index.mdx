@@ -1,97 +1,152 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
+title: "Learn Go"
+description: "A comprehensive course to master the fundamentals and advanced features of the Go programming language"
 ---
 
-## Setting up
+<img
+  className="block"
+  src="https://go.dev/blog/go-brand/Go-Logo/PNG/Go-Logo_Blue.png"
+  alt="Go Logo"
+  style={{ width: '300px', margin: '0 auto' }}
+/>
 
-Get your documentation site up and running in minutes.
+# Welcome to Learn Go
 
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
+Master the fundamentals and advanced features of the Go programming language with this comprehensive course. Whether you're new to programming or coming from another language, this course will take you from beginner to confident Go developer.
 
-## Make it yours
+## What is Go?
 
-Design a docs site that looks great and empowers your users.
+Go (also known as _Golang_) is a programming language developed at Google in 2007 and open-sourced in 2009. It focuses on simplicity, reliability, and efficiency, designed to combine the best aspects of statically typed compiled languages with the ease of dynamic languages.
 
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
+<CardGroup cols={3}>
+  <Card title="Simple" icon="lightbulb">
+    Just 25 keywords make Go easy to learn and maintain
   </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
+  
+  <Card title="Fast" icon="rocket">
+    Compiled to native code for excellent performance
   </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
+  
+  <Card title="Concurrent" icon="network-wired">
+    Built-in support for concurrent programming with goroutines
   </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
-  </Card>
-</Columns>
+</CardGroup>
 
-## Create beautiful pages
+## Course Structure
 
-Everything you need to create world-class documentation.
+This course is organized into progressive chapters that build upon each other:
 
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
+<CardGroup cols={2}>
+  <Card title="Getting Started" icon="flag-checkered" href="/introduction">
+    Learn what Go is, why you should learn it, and set up your development environment
   </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
+  
+  <Card title="Fundamentals" icon="book-open" href="/fundamentals/hello-world">
+    Master the basics: variables, data types, functions, modules, and packages
   </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
+  
+  <Card title="Core Concepts" icon="cube" href="/core/pointers">
+    Deep dive into pointers, structs, methods, arrays, slices, and maps
   </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
+  
+  <Card title="Advanced Features" icon="star" href="/core/interfaces">
+    Learn interfaces, error handling, panic/recover, testing, and generics
   </Card>
-</Columns>
+  
+  <Card title="Concurrency" icon="arrows-split-up-and-left" href="/concurrency/overview">
+    Master goroutines, channels, sync primitives, and concurrency patterns
+  </Card>
+  
+  <Card title="Resources" icon="book-bookmark" href="/resources/next-steps">
+    Find next steps, references, and additional learning materials
+  </Card>
+</CardGroup>
 
-## Need inspiration?
+## What You'll Learn
 
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+<AccordionGroup>
+  <Accordion title="Chapter I: Fundamentals" icon="book">
+    - Hello World and program structure
+    - Variables, data types, and constants
+    - String formatting with fmt package
+    - Control flow: if/else, switch, loops
+    - Functions, closures, and variadic functions
+    - Modules and packages
+    - Workspaces (Go 1.18+)
+    - Essential Go commands
+    - Building and cross-compiling
+  </Accordion>
+
+  <Accordion title="Chapter II: Core Data Structures" icon="database">
+    - Pointers and memory management
+    - Structs and composition
+    - Methods and receivers
+    - Arrays and slices
+    - Maps and hash tables
+  </Accordion>
+
+  <Accordion title="Chapter III: Advanced Features" icon="graduation-cap">
+    - Interfaces and polymorphism
+    - Error handling patterns
+    - Panic and recovery
+    - Testing and benchmarking
+    - Generics (Go 1.18+)
+  </Accordion>
+
+  <Accordion title="Chapter IV: Concurrency" icon="gears">
+    - Concurrency concepts and CSP model
+    - Goroutines and the fork-join model
+    - Channels: buffered, unbuffered, directional
+    - Select statement
+    - Sync package: WaitGroup, Mutex, Once
+    - Advanced concurrency patterns
+    - Context package for cancellation
+  </Accordion>
+</AccordionGroup>
+
+## Why Learn Go?
+
+<CardGroup cols={2}>
+  <Card title="Easy to Learn" icon="user-graduate">
+    Go is quite easy to learn and has a supportive, active community. Being a multipurpose language, you can use it for backend development, cloud computing, and data science.
+  </Card>
+  
+  <Card title="Fast & Reliable" icon="gauge-high">
+    Go is highly suitable for distributed systems. Major projects like Kubernetes and Docker are written in Go.
+  </Card>
+  
+  <Card title="Simple Yet Powerful" icon="wand-magic-sparkles">
+    Go's 25 keywords make it easy to read, write, and maintain. The language is concise but includes powerful features.
+  </Card>
+  
+  <Card title="Career Opportunities" icon="briefcase">
+    Go is growing fast and being adopted by companies of all sizes, bringing new high-paying job opportunities.
+  </Card>
+</CardGroup>
+
+## Who This Course Is For
+
+- Developers new to Go who want a comprehensive introduction
+- Programmers from other languages (Python, JavaScript, Java, C++) looking to learn Go
+- Anyone interested in backend development, cloud computing, or systems programming
+- Developers who want to work with modern cloud-native technologies
+
+<Note>
+  This course covers Go from the ground up. No prior Go experience is required, but basic programming knowledge is helpful.
+</Note>
+
+## Ready to Start?
+
+<CardGroup cols={2}>
+  <Card title="Start Learning" icon="play" href="/introduction">
+    Begin with the introduction to understand what makes Go special
+  </Card>
+  
+  <Card title="Install Go" icon="download" href="/installation">
+    Set up your Go development environment
+  </Card>
+</CardGroup>
+
+---
+
+_This course is based on the open-source [Learn Go](https://github.com/karanpratapsingh/learn-go) repository by Karan Pratap Singh._

@@ -1,0 +1,253 @@
+---
+title: 'Channels'
+description: 'Learn about channels in Go, the primary mechanism for communication between goroutines'
+---
+
+## What are Channels?
+
+Simply defined, a channel is a communications pipe between goroutines. Things go in one end and come out another in the same order until the channel is closed.
+
+<img src="https://raw.githubusercontent.com/karanpratapsingh/portfolio/master/public/static/courses/go/chapter-IV/channels/channel.png" alt="Channel" />
+
+As we learned earlier, channels in Go are based on **Communicating Sequential Processes (CSP)**.
+
+## Creating a Channel
+
+Now that we understand what channels are, let's see how we can declare them:
+
+```go
+var ch chan T
+```
+
+Here, we prefix our type `T` (the data type of the value we want to send and receive) with the keyword `chan` which stands for a channel.
+
+Let's try printing the value of our channel `ch` of type `string`:
+
+```go
+func main() {
+	var ch chan string
+
+	fmt.Println(ch)
+}
+```
+
+```bash
+$ go run main.go
+<nil>
+```
+
+<Warning>
+As we can see, the zero value of a channel is `nil` and if we try to send data over the channel our program will panic.
+</Warning>
+
+So, similar to slices, we can initialize our channel using the built-in `make` function:
+
+```go
+func main() {
+	ch := make(chan string)
+
+	fmt.Println(ch)
+}
+```
+
+And if we run this, we can see our channel was initialized:
+
+```bash
+$ go run main.go
+0x1400010e060
+```
+
+## Sending and Receiving Data
+
+Now that we have a basic understanding of channels, let us implement our earlier goroutine example using channels to learn how we can use them to communicate between our goroutines.
+
+```go
+package main
+
+import "fmt"
+
+func speak(arg string, ch chan string) {
+	ch <- arg // Send
+}
+
+func main() {
+	ch := make(chan string)
+
+	go speak("Hello World", ch)
+
+	data := <-ch // Receive
+	fmt.Println(data)
+}
+```
+
+Notice how we can send data using the `channel <- data` syntax and receive data using the `data := <- channel` syntax.
+
+```bash
+$ go run main.go
+Hello World
+```
+
+Perfect, our program ran as we expected!
+
+<Tip>
+This works because sends and receives block until both the sender and receiver are ready. This property allowed us to wait until the next value is sent.
+</Tip>
+
+## Buffered Channels
+
+We also have **buffered channels** that accept a limited number of values without a corresponding receiver for those values.
+
+<img src="https://raw.githubusercontent.com/karanpratapsingh/portfolio/master/public/static/courses/go/chapter-IV/channels/buffered-channel.png" alt="Buffered Channel" />
+
+This buffer length or capacity can be specified using the second argument to the `make` function:
+
+```go
+func main() {
+	ch := make(chan string, 2)
+
+	go speak("Hello World", ch)
+	go speak("Hi again", ch)
+
+	data1 := <-ch
+	fmt.Println(data1)
+
+	data2 := <-ch
+	fmt.Println(data2)
+}
+```
+
+<Note>
+Because this channel is buffered, we can send these values into the channel without a corresponding concurrent receive. This means **sends** to a buffered channel block only when the buffer is full and **receives** block when the buffer is empty.
+</Note>
+
+By default, a channel is unbuffered and has a capacity of 0, hence, we omit the second argument to the `make` function.
+
+## Directional Channels
+
+When using channels as function parameters, we can specify if a channel is meant to only send or receive values. This increases the type-safety of our program as by default a channel can both send and receive values.
+
+<img src="https://raw.githubusercontent.com/karanpratapsingh/portfolio/master/public/static/courses/go/chapter-IV/channels/directional-channels.png" alt="Directional Channels" />
+
+In our example, we can update our `speak` function's second argument such that it can only send a value:
+
+```go
+func speak(arg string, ch chan<- string) {
+	ch <- arg // Send Only
+}
+```
+
+Here, `chan<-` can only be used for sending values and will panic if we try to receive values.
+
+Similarly, we can create a receive-only channel using `<-chan`:
+
+```go
+func listen(ch <-chan string) {
+	data := <-ch // Receive Only
+	fmt.Println(data)
+}
+```
+
+## Closing Channels
+
+Also, just like any other resource, once we're done with our channel, we need to close it. This can be achieved using the built-in `close` function:
+
+```go
+func main() {
+	ch := make(chan string, 2)
+
+	go speak("Hello World", ch)
+	go speak("Hi again", ch)
+
+	data1 := <-ch
+	fmt.Println(data1)
+
+	data2 := <-ch
+	fmt.Println(data2)
+
+	close(ch)
+}
+```
+
+Optionally, receivers can test whether a channel has been closed by assigning a second parameter to the receive expression:
+
+```go
+data, ok := <-ch
+```
+
+If `ok` is `false` then there are no more values to receive and the channel is closed.
+
+<Note>
+This is similar to how we check if a key exists in a map.
+</Note>
+
+## Range over Channels
+
+We can also use `for` and `range` to iterate over values received from a channel:
+
+```go
+package main
+
+import "fmt"
+
+func main() {
+	ch := make(chan string, 2)
+
+	ch <- "Hello"
+	ch <- "World"
+
+	close(ch)
+
+	for data := range ch {
+		fmt.Println(data)
+	}
+}
+```
+
+```bash
+$ go run main.go
+Hello
+World
+```
+
+## Channel Properties
+
+Lastly, let's discuss some important properties of channels:
+
+### A send to a nil channel blocks forever
+
+```go
+var c chan string
+c <- "Hello, World!" // Panic: all goroutines are asleep - deadlock!
+```
+
+### A receive from a nil channel blocks forever
+
+```go
+var c chan string
+fmt.Println(<-c) // Panic: all goroutines are asleep - deadlock!
+```
+
+### A send to a closed channel causes panic
+
+```go
+var c = make(chan string, 1)
+c <- "Hello, World!"
+close(c)
+c <- "Hello, Panic!" // Panic: send on closed channel
+```
+
+### A receive from a closed channel returns the zero value immediately
+
+```go
+var c = make(chan int, 2)
+c <- 5
+c <- 4
+close(c)
+for i := 0; i < 4; i++ {
+    fmt.Printf("%d ", <-c) // Output: 5 4 0 0
+}
+```
+
+<Warning>
+Always be careful when working with channels to avoid panics and deadlocks. Make sure to close channels when done and handle closed channels appropriately.
+</Warning>

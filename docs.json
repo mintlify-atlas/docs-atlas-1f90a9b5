@@ -1,122 +1,122 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
-  "name": "Mint Starter Kit",
+  "name": "Learn Go",
+  "theme": "palm",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#00ADD8",
+    "light": "#5DC9E2",
+    "dark": "#00758D"
   },
-  "favicon": "/favicon.svg",
+  "navbar": {
+    "primary": {
+      "type": "github",
+      "href": "https://github.com/karanpratapsingh/learn-go"
+    }
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/karanpratapsingh/learn-go"
+    }
+  },
   "navigation": {
     "tabs": [
       {
-        "tab": "Guides",
+        "tab": "Getting Started",
         "groups": [
           {
-            "group": "Getting started",
+            "group": "Introduction",
             "pages": [
-              "index",
-              "quickstart",
-              "development"
-            ]
-          },
-          {
-            "group": "Customization",
-            "pages": [
-              "essentials/settings",
-              "essentials/navigation"
-            ]
-          },
-          {
-            "group": "Writing content",
-            "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/reusable-snippets"
-            ]
-          },
-          {
-            "group": "AI tools",
-            "pages": [
-              "ai-tools/cursor",
-              "ai-tools/claude-code",
-              "ai-tools/windsurf"
+              "introduction",
+              "why-learn-go",
+              "installation"
             ]
           }
         ]
       },
       {
-        "tab": "API reference",
+        "tab": "Fundamentals",
         "groups": [
           {
-            "group": "API documentation",
+            "group": "Chapter I - Basics",
             "pages": [
-              "api-reference/introduction"
+              "fundamentals/hello-world",
+              "fundamentals/variables-and-data-types",
+              "fundamentals/string-formatting",
+              "fundamentals/flow-control",
+              "fundamentals/functions"
             ]
           },
           {
-            "group": "Endpoint examples",
+            "group": "Project Management",
             "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
+              "fundamentals/modules",
+              "fundamentals/packages",
+              "fundamentals/workspaces"
+            ]
+          },
+          {
+            "group": "Development Tools",
+            "pages": [
+              "fundamentals/useful-commands",
+              "fundamentals/build"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Core Concepts",
+        "groups": [
+          {
+            "group": "Chapter II - Data Structures",
+            "pages": [
+              "core/pointers",
+              "core/structs",
+              "core/methods",
+              "core/arrays-and-slices",
+              "core/maps"
+            ]
+          },
+          {
+            "group": "Chapter III - Advanced Features",
+            "pages": [
+              "core/interfaces",
+              "core/errors",
+              "core/panic-and-recover",
+              "core/testing",
+              "core/generics"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Concurrency",
+        "groups": [
+          {
+            "group": "Chapter IV - Concurrent Programming",
+            "pages": [
+              "concurrency/overview",
+              "concurrency/goroutines",
+              "concurrency/channels",
+              "concurrency/select",
+              "concurrency/sync-package",
+              "concurrency/advanced-patterns",
+              "concurrency/context"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Resources",
+        "groups": [
+          {
+            "group": "Next Steps",
+            "pages": [
+              "resources/next-steps",
+              "resources/references"
             ]
           }
         ]
       }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
-        }
-      ]
-    }
-  },
-  "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
-  },
-  "navbar": {
-    "links": [
-      {
-        "label": "Support",
-        "href": "mailto:hi@mintlify.com"
-      }
-    ],
-    "primary": {
-      "type": "button",
-      "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
-    }
-  },
-  "contextual": {
-    "options": [
-     "copy",
-     "view",
-     "chatgpt",
-     "claude",
-     "perplexity",
-     "mcp",
-     "cursor",
-     "vscode"
-   ]
-  },
-  "footer": {
-    "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
-    }
+    ]
   }
 }
