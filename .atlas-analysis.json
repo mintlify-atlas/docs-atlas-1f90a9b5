@@ -1,0 +1,138 @@
+{
+  "projectType": "general",
+  "projectName": "Learn Go",
+  "projectDescription": "A comprehensive course to master the fundamentals and advanced features of the Go programming language",
+  "theme": "palm",
+  "primaryColor": "#00ADD8",
+  "lightColor": "#5DC9E2",
+  "darkColor": "#00758D",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Getting Started",
+        "groups": [
+          {
+            "group": "Introduction",
+            "pages": [
+              "introduction",
+              "why-learn-go",
+              "installation"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Fundamentals",
+        "groups": [
+          {
+            "group": "Chapter I - Basics",
+            "pages": [
+              "fundamentals/hello-world",
+              "fundamentals/variables-and-data-types",
+              "fundamentals/string-formatting",
+              "fundamentals/flow-control",
+              "fundamentals/functions"
+            ]
+          },
+          {
+            "group": "Project Management",
+            "pages": [
+              "fundamentals/modules",
+              "fundamentals/packages",
+              "fundamentals/workspaces"
+            ]
+          },
+          {
+            "group": "Development Tools",
+            "pages": [
+              "fundamentals/useful-commands",
+              "fundamentals/build"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Core Concepts",
+        "groups": [
+          {
+            "group": "Chapter II - Data Structures",
+            "pages": [
+              "core/pointers",
+              "core/structs",
+              "core/methods",
+              "core/arrays-and-slices",
+              "core/maps"
+            ]
+          },
+          {
+            "group": "Chapter III - Advanced Features",
+            "pages": [
+              "core/interfaces",
+              "core/errors",
+              "core/panic-and-recover",
+              "core/testing",
+              "core/generics"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Concurrency",
+        "groups": [
+          {
+            "group": "Chapter IV - Concurrent Programming",
+            "pages": [
+              "concurrency/overview",
+              "concurrency/goroutines",
+              "concurrency/channels",
+              "concurrency/select",
+              "concurrency/sync-package",
+              "concurrency/advanced-patterns",
+              "concurrency/context"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Resources",
+        "groups": [
+          {
+            "group": "Next Steps",
+            "pages": [
+              "resources/next-steps",
+              "resources/references"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Comprehensive coverage from basics to advanced Go features",
+    "Hands-on examples with runnable code snippets",
+    "Deep dive into Go's concurrency model with goroutines and channels",
+    "Practical coverage of error handling and testing",
+    "Module and package management best practices",
+    "Advanced topics including generics and context patterns"
+  ],
+  "publicApiSurface": [
+    "Variables and Data Types (int, string, bool, float, complex)",
+    "Control Flow (if/else, switch, for loops)",
+    "Functions (variadic, closures, defer, init)",
+    "Pointers and Memory Management",
+    "Structs and Methods",
+    "Arrays, Slices, and Maps",
+    "Interfaces and Type Assertions",
+    "Error Handling (errors.New, fmt.Errorf, custom errors)",
+    "Panic and Recover",
+    "Testing Framework (testing package)",
+    "Generics (type parameters)",
+    "Goroutines and Concurrency",
+    "Channels (buffered, unbuffered, directional)",
+    "Select Statement",
+    "Sync Package (WaitGroup, Mutex, RWMutex, Once)",
+    "Context Package",
+    "Modules and Packages (go mod, go get, go install)",
+    "Build Tools (go build, go run, GOOS, GOARCH, CGO_ENABLED)"
+  ]
+}
